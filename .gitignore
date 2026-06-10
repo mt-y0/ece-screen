@@ -1,0 +1,27 @@
+# Compiled binary
+ECE-screen
+/ece-screen
+
+# Go build cache
+*.test
+*.out
+
+# Environment / secrets
+.env
+.env.*
+
+# PocketBase data (database files, uploads, logs)
+pb_data/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
