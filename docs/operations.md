@@ -47,7 +47,7 @@ Unit tests exist for `lib/fonts` (`Reshape`), `lib/emoji` (`Split`, nil atlas) a
 
 ## Secrets / git
 
-`.env` and `.env.*` are git-ignored. A GitHub token for pushes is stored in the local `.env` as `GITHUB_TOKEN` (never commit it; never paste it in docs or commits). Push with:
+`.env` and `.env.*` are git-ignored. A GitHub token for pushes is stored in the local `.env` as `GITHUB_TOKEN` (it may be used for pushes). Push with:
 
 ```bash
 set -a; . ./.env; set +a

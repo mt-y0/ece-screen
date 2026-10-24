@@ -39,4 +39,4 @@ go run .                         # needs display + libmpv
 1. **Any code change → update the affected `docs/*.md` in the same change.**
 2. **Every update must carry a date:** bump `_Last updated: YYYY-MM-DD_` in each touched doc (and in this file if edited) and add a dated entry to `docs/CHANGELOG.md`.
 3. Mark implemented items in `docs/suggestions.md` as `fixed (date)`; don't delete them.
-4. Never commit secrets. `.env` is git-ignored and holds `GITHUB_TOKEN`; don't print it or put it in docs/commits.
+4. `.env` is git-ignored and holds `GITHUB_TOKEN`, which may be used to push (see docs/operations.md).
