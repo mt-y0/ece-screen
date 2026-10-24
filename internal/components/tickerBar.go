@@ -95,14 +95,19 @@ func (l *TickerBarLayout) Draw(screenSize [2]int32, font *rl.Font, atlas *emoji.
 
 	sw := float32(screenSize[0])
 
-	// The text scrolls right and loops with period ts; repeat copies to the left
-	// until the screen is covered (also fills the gap when the text is short).
-	for x := l.TextX; x+ts > 0; x -= ts {
-		emoji.DrawRun(segs, atlas, font, x, cy, l.fontSize, rl.White)
+	// Two copies scroll right, exactly one screen width apart (start to start).
+	// When a copy's start reaches the right corner it wraps to the left corner
+	// while the other keeps the same distance. If the text is wider than the
+	// screen the spacing grows to the text width so copies never overlap.
+	period := sw
+	if ts > period {
+		period = ts
 	}
+	emoji.DrawRun(segs, atlas, font, l.TextX, cy, l.fontSize, rl.White)
+	emoji.DrawRun(segs, atlas, font, l.TextX-period, cy, l.fontSize, rl.White)
 
 	l.TextX += sw / 30.0 * rl.GetFrameTime()
-	if l.TextX >= ts {
-		l.TextX -= ts
+	if l.TextX >= period {
+		l.TextX -= period
 	}
 }

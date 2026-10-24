@@ -4,6 +4,15 @@ _Last updated: 2026-10-24_
 
 Newest first. Every code or doc change gets a dated entry (`YYYY-MM-DD`).
 
+## 2026-10-24 (ninth update)
+- Ticker bar: two copies exactly one screen width apart (start to start, period = max(screenW, textW)); a copy reaching the right corner reappears at the left corner. Docs: components.
+
+## 2026-10-24 (eighth update)
+- Ticker bar: two copies, one screen width apart, so the next copy enters right as the previous leaves (no empty bar). Docs: components.
+
+## 2026-10-24 (seventh update)
+- Ticker bar: now a single copy scrolls right and re-enters from the left only after the whole sentence has left the right edge (period = screenW + textW), instead of a seamless repeating loop. Docs: components.
+
 ## 2026-10-24 (sixth update)
 - `scripts/tui.sh`: new `deps` command — on Arch installs missing `go gcc pkgconf mpv ffmpeg libx11 libxrandr libxinerama libxcursor libxi libglvnd labwc xorg-xwayland` with `sudo pacman -S --needed`; elsewhere lists them. `doctor` now also checks the C compiler, X11/GL dev libs and labwc.
 - `Makefile`: bootstrap (stamp) runs `deps` → `doctor` → `go mod download` and re-runs when `scripts/tui.sh` changes; new targets `make deps` and `make labwc` (`labwc -S ./ECE-screen`).
