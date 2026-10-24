@@ -2,12 +2,16 @@
 
 _Last updated: 2026-10-24_
 
+## Makefile (preferred)
+
+`make` shows a menu (TUI helpers in `scripts/tui.sh`; honours `NO_COLOR`). `make build` / `make run` first detect a fresh clone (missing `.build/deps.stamp`, or `go.mod`/`go.sum` newer), run a system-dependency check (`make doctor`) and `go mod download`, then build `./ECE-screen`. `make test` = `go vet` + `gofmt -l` check + `go test ./...` (no Go tests exist yet). Also: `setup`, `vet`, `fmt`, `clean`, `distclean`.
+
 ## Build / run / lint
 
 ```bash
 go build ./...   # build
 go vet ./...     # lint (clean as of 2026-10-24)
-gofmt -l .       # formatting (noticeBoard.go currently unformatted)
+gofmt -l .       # formatting (clean)
 go run .         # needs a display + libmpv (cannot run headless)
 ```
 

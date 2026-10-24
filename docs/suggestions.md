@@ -19,7 +19,7 @@ Found by code reading + `go vet` on 2026-10-24. Nothing here is fixed yet. Statu
 | S-11 | M | open | `main.go` | `ZOOM` unvalidated (0/negative); window size read once (no resize handling); layout fractions/aspect `1.454` hard-coded and overlap on non-16:9 screens. → validate; recompute layout on resize or document supported ratio. |
 | S-12 | L | open | `raycss.NewMaskContainer` | Every container compiles its own identical shader (≥8 compiles). Shader is `#version 330` (fails on GLES/Raspberry Pi). → share one shader; provide `#version 100/300 es` fallback if targeting ARM boards. |
 | S-13 | L | open | `lib/fonts/arabic.go` | No Persian/Kurdish letters or tatweel; alef maqsura Initial/Medial reuse the *final* glyph FEF0. → extend `Registry` if the department uses those letters. `Reshape` is pure → ideal for unit tests. |
-| S-14 | L | open | `noticeBoard.go` | File not `gofmt`-clean; `CleanUp` doesn't unload `Mask`. `db/client.go` uses `log.Fatalf` from a goroutine. |
+| S-14 | L | open (gofmt part fixed 2026-10-24) | `noticeBoard.go` | `CleanUp` doesn't unload `Mask`. `db/client.go` uses `log.Fatalf` from a goroutine. |
 | S-15 | L | open | repo | No tests, CI, `.env.example`, Dockerfile/systemd unit (kiosk autostart). (Schema bootstrap now exists in `internal/db/schema.go`, 2026-10-24.) → add `Reshape`/`FitText`/time-parse tests, commit PB migrations, add a systemd unit. README says "Go 1.22+" but go.mod requires 1.26.2. |
 
 ## Suggested order

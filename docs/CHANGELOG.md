@@ -4,6 +4,11 @@ _Last updated: 2026-10-24_
 
 Newest first. Every code or doc change gets a dated entry (`YYYY-MM-DD`).
 
+## 2026-10-24 (third update)
+- Added `Makefile` (help/setup/doctor/build/run/vet/test/fmt/clean/distclean) and `scripts/tui.sh` (playful spinner/banner UI); fresh-clone detection via `.build/deps.stamp` triggers dependency check + `go mod download`. `.build/` git-ignored.
+- `gofmt` applied to `internal/components/noticeBoard.go`.
+- Docs updated: operations.
+
 ## 2026-10-24 (second update)
 - `internal/db`: new `schema.go` — `EnsureSchema` creates missing collections (Schedules, TickerBar, Professors, Notices, Media) with example records; `client.go` now runs it from `OnServe` and waits until ready (fixes S-02). PocketBase's built-in installer URL provides first-run superuser registration.
 - Docs updated: data-model, operations, architecture, suggestions (S-02 fixed, S-15 amended).

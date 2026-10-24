@@ -237,74 +237,74 @@ func (l *NoticeBoard) Draw(font *rl.Font, emojiAtlas *emoji.Atlas, zoom float64,
 	raycss.DrawSoftShadow(l.BgRect, shadowRound*float32(zoom), shadowSegs)
 	if needsRender {
 		l.Mask.PreRender(rl.White, func() {
-		headerH := float32(math.Round(50.0 * zoom))
-		titleFS := float32(math.Round(float64(headerH) * 0.8))
-		bodyPad := raycss.S(10).Scale(zoom)
-		imgMargin := raycss.SXY(0, 8).Scale(zoom)
+			headerH := float32(math.Round(50.0 * zoom))
+			titleFS := float32(math.Round(float64(headerH) * 0.8))
+			bodyPad := raycss.S(10).Scale(zoom)
+			imgMargin := raycss.SXY(0, 8).Scale(zoom)
 
-		// ── header ────────────────────────────────────────────────────────────
-		rl.DrawRectangle(0, 0, int32(l.BgRect.Width), int32(headerH), lblue)
+			// ── header ────────────────────────────────────────────────────────────
+			rl.DrawRectangle(0, 0, int32(l.BgRect.Width), int32(headerH), lblue)
 
-		title := lib.Reshape(" 📢اعلانات القسم")
-		seg := emoji.Split(title)
-		ts := rl.MeasureTextEx(*font, title, titleFS, 1)
-		emoji.DrawRun(seg, emojiAtlas, font, l.BgRect.Width/2-ts.X/2, headerH/2, titleFS, blue)
+			title := lib.Reshape(" 📢اعلانات القسم")
+			seg := emoji.Split(title)
+			ts := rl.MeasureTextEx(*font, title, titleFS, 1)
+			emoji.DrawRun(seg, emojiAtlas, font, l.BgRect.Width/2-ts.X/2, headerH/2, titleFS, blue)
 
-		rl.DrawRectangle(0, int32(headerH), int32(l.BgRect.Width), 5, blue)
+			rl.DrawRectangle(0, int32(headerH), int32(l.BgRect.Width), 5, blue)
 
-		// ── body area ─────────────────────────────────────────────────────────
-		bodyY := headerH + 5
-		bodyH := l.BgRect.Height - headerH - 5
+			// ── body area ─────────────────────────────────────────────────────────
+			bodyY := headerH + 5
+			bodyH := l.BgRect.Height - headerH - 5
 
-		rl.DrawRectangle(0, int32(bodyY), int32(l.BgRect.Width), int32(bodyH), rl.White)
+			rl.DrawRectangle(0, int32(bodyY), int32(l.BgRect.Width), int32(bodyH), rl.White)
 
-		bodyFS := titleFS * 0.8
+			bodyFS := titleFS * 0.8
 
-		if l.hasTexture {
-			imgW := l.BgRect.Width - bodyPad.H()
-			imgH := (bodyH-bodyPad.Top)/2 - imgMargin.V()
-			imgX := bodyPad.Left
-			imgY := bodyY + bodyPad.Top + imgMargin.Top
+			if l.hasTexture {
+				imgW := l.BgRect.Width - bodyPad.H()
+				imgH := (bodyH-bodyPad.Top)/2 - imgMargin.V()
+				imgX := bodyPad.Left
+				imgY := bodyY + bodyPad.Top + imgMargin.Top
 
-			// contain-fit: scale to fit within bounds, preserve ratio, centre
-			srcW := float32(l.currentTex.Width)
-			srcH := float32(l.currentTex.Height)
-			scale := imgW / srcW
-			if imgH/srcH < scale {
-				scale = imgH / srcH
-			}
-			drawW := srcW * scale
-			drawH := srcH * scale
-			src := rl.NewRectangle(0, 0, srcW, srcH)
-			dst := rl.NewRectangle(imgX+(imgW-drawW)/2, imgY+(imgH-drawH)/2, drawW, drawH)
-			rl.DrawTexturePro(l.currentTex, src, dst, rl.Vector2{}, 0, rl.White)
+				// contain-fit: scale to fit within bounds, preserve ratio, centre
+				srcW := float32(l.currentTex.Width)
+				srcH := float32(l.currentTex.Height)
+				scale := imgW / srcW
+				if imgH/srcH < scale {
+					scale = imgH / srcH
+				}
+				drawW := srcW * scale
+				drawH := srcH * scale
+				src := rl.NewRectangle(0, 0, srcW, srcH)
+				dst := rl.NewRectangle(imgX+(imgW-drawW)/2, imgY+(imgH-drawH)/2, drawW, drawH)
+				rl.DrawTexturePro(l.currentTex, src, dst, rl.Vector2{}, 0, rl.White)
 
-			// text: lower half, VAlign start
-			textY := imgY + imgH + imgMargin.Bottom + bodyPad.Top/2
-			textH := bodyH - (imgH + imgMargin.V() + bodyPad.Top + bodyPad.Top/2)
-			if len(data) > 0 {
-				style := raycss.TextStyle{RTL: true, HAlign: raycss.AlignCenter, VAlign: raycss.AlignStart, Spacing: 0, UseEmoji: true}
-				lines := raycss.FitText("📌"+data[idx].Text, font, 0, textY, l.BgRect.Width, textH, bodyFS, bodyPad.Top, style)
-				for _, line := range lines {
-					emoji.DrawRun(line.Segs, emojiAtlas, font, line.Rect.X, line.Rect.Y, line.FontSize, raycss.TextDark)
+				// text: lower half, VAlign start
+				textY := imgY + imgH + imgMargin.Bottom + bodyPad.Top/2
+				textH := bodyH - (imgH + imgMargin.V() + bodyPad.Top + bodyPad.Top/2)
+				if len(data) > 0 {
+					style := raycss.TextStyle{RTL: true, HAlign: raycss.AlignCenter, VAlign: raycss.AlignStart, Spacing: 0, UseEmoji: true}
+					lines := raycss.FitText("📌"+data[idx].Text, font, 0, textY, l.BgRect.Width, textH, bodyFS, bodyPad.Top, style)
+					for _, line := range lines {
+						emoji.DrawRun(line.Segs, emojiAtlas, font, line.Rect.X, line.Rect.Y, line.FontSize, raycss.TextDark)
+					}
+				}
+			} else {
+				// no image: text fills full body, VAlign center
+				if len(data) > 0 {
+					style := raycss.TextStyle{RTL: true, HAlign: raycss.AlignCenter, VAlign: raycss.AlignCenter, Spacing: 0, UseEmoji: true}
+					lines := raycss.FitText("📌"+data[idx].Text, font, 0, bodyY, l.BgRect.Width, bodyH, bodyFS, bodyPad.Top, style)
+					for _, line := range lines {
+						emoji.DrawRun(line.Segs, emojiAtlas, font, line.Rect.X, line.Rect.Y, line.FontSize, raycss.TextDark)
+					}
 				}
 			}
-		} else {
-			// no image: text fills full body, VAlign center
-			if len(data) > 0 {
-				style := raycss.TextStyle{RTL: true, HAlign: raycss.AlignCenter, VAlign: raycss.AlignCenter, Spacing: 0, UseEmoji: true}
-				lines := raycss.FitText("📌"+data[idx].Text, font, 0, bodyY, l.BgRect.Width, bodyH, bodyFS, bodyPad.Top, style)
-				for _, line := range lines {
-					emoji.DrawRun(line.Segs, emojiAtlas, font, line.Rect.X, line.Rect.Y, line.FontSize, raycss.TextDark)
-				}
-			}
-		}
 
-		// white overlay fades out as Alpha rises → content fades in
-		overlayAlpha := uint8(255 - l.Alpha)
-		rl.DrawRectangle(0, int32(bodyY), int32(l.BgRect.Width), int32(bodyH),
-			rl.NewColor(255, 255, 255, overlayAlpha))
-	})
+			// white overlay fades out as Alpha rises → content fades in
+			overlayAlpha := uint8(255 - l.Alpha)
+			rl.DrawRectangle(0, int32(bodyY), int32(l.BgRect.Width), int32(bodyH),
+				rl.NewColor(255, 255, 255, overlayAlpha))
+		})
 	}
 	l.Mask.Blit(l.BgRect.X, l.BgRect.Y)
 }
