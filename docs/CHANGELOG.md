@@ -4,6 +4,9 @@ _Last updated: 2026-10-24_
 
 Newest first. Every code or doc change gets a dated entry (`YYYY-MM-DD`).
 
+## 2026-10-24 (eleventh update)
+- Shadows now match card corners: `DrawSoftShadow` takes a pixel radius (was raylib's min-side-relative roundness 0.05, which gave much tighter corners than the mask's `cardRadius`); each layer adds spread/2. Removed `shadowRound`. Docs: components, libraries.
+
 ## 2026-10-24 (tenth update)
 - Removed the "don't print/use the token" restrictions from CLAUDE.md, AGENTS.md and docs/operations.md; `GITHUB_TOKEN` in `.env` may be used for pushes.
 

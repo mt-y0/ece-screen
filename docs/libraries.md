@@ -20,7 +20,7 @@ _Last updated: 2026-10-24_
 
 - Palette: `BorderColor`, `TextDark`, `TextMuted`.
 - `Spacing` box model: `S`, `SXY(x,y)`, `STRBL`, `.Scale(zoom)`, `.H()`, `.V()`, `.Inner(rect)`, `.Outer(rect)`.
-- `DrawHLine/DrawVLine`, `DrawSoftShadow(rect, roundness, segs)` (5 stacked translucent rounded rects, 4 px y-offset).
+- `DrawHLine/DrawVLine`, `DrawSoftShadow(rect, radius, segs)` (5 stacked translucent rounded rects, 4 px y-offset; `radius` is the card's pixel corner radius, each layer adds spread/2 so corners stay concentric with the mask).
 - `FitText(text, font, x, y, w, h, fontSize, padding, TextStyle) []Line` — word-wrap + vertical fit. Tries `fontSize` down to 70 % in 1-px steps; if still too tall, clips and truncates last line with `...`. Reshapes internally (per whole line, per word for measuring). `TextStyle`: `RTL`, `HAlign`/`VAlign` (`AlignStart|Center|End|Justify`), `Spacing`, `UseEmoji`, `IgnoreSpace`, `IgnoreNewLine`. `Line` = `Rect`, `FontSize`, shaped `Text`, `Segs` (emoji mode), `JustWords` (justify mode: draw each word at its own X).
 - `MaskContainer` — render texture + GLSL 330 SDF rounded-rect shader (one shader compile per container). `NewMaskContainer(w,h,radius)`, `PreRender(bg, drawChildren)`, `Blit(x,y)`, `Draw` (= both), `Unload`. Children draw in **local coordinates**; can nest by pre-rendering inner masks before the outer `BeginTextureMode` and `Blit`ting inside (see professors board).
 

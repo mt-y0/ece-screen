@@ -21,9 +21,8 @@ import (
 // ── constants ──────────────────────────────────────────────────────────────
 
 const (
-	cardRadius  = float32(10)
-	shadowRound = float32(0.05)
-	shadowSegs  = int32(8)
+	cardRadius = float32(10)
+	shadowSegs = int32(8)
 )
 
 var arabicDays = [7]string{
@@ -324,7 +323,7 @@ func (l *TableLayout) Draw(font *rl.Font, zoom float64, blue, lightBlue rl.Color
 
 	// Always blit the cached textures to the screen.
 	for i := range 4 {
-		raycss.DrawSoftShadow(l.Stages[i], shadowRound*float32(zoom), shadowSegs)
+		raycss.DrawSoftShadow(l.Stages[i], cardRadius, shadowSegs)
 		l.Masks[i].Blit(l.Stages[i].X, l.Stages[i].Y)
 	}
 }

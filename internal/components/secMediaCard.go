@@ -216,6 +216,6 @@ func (l *SecondaryMediaCard) Draw(font *rl.Font, emojiAtlas *emoji.Atlas, zoom f
 		})
 	}
 
-	raycss.DrawSoftShadow(l.BgRect, shadowRound*float32(zoom), shadowSegs)
+	raycss.DrawSoftShadow(l.BgRect, cardRadius*float32(zoom), shadowSegs)
 	l.Mask.Blit(l.BgRect.X, l.BgRect.Y)
 }

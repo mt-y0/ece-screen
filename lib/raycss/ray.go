@@ -457,8 +457,10 @@ func fitTruncateWords(words []string, w, spaceW float32, measure func(string) fl
 	return lib.Reshape(strings.Join(kept, " ")) + ellipsis
 }
 
-// DrawSoftShadow simulates box-shadow: 0 4px 6px rgba(0,0,0,0.05)
-func DrawSoftShadow(rect rl.Rectangle, roundness float32, segments int32) {
+// DrawSoftShadow simulates box-shadow: 0 4px 6px rgba(0,0,0,0.05).
+// radius is the pixel corner radius of the card (same value as its
+// MaskContainer); each layer grows it by its spread so corners stay concentric.
+func DrawSoftShadow(rect rl.Rectangle, radius float32, segments int32) {
 	const offsetY = float32(4)
 	spreads := [5]float32{5, 4, 3, 2, 1}
 	alphas := [5]uint8{1, 2, 3, 4, 5}
@@ -470,6 +472,9 @@ func DrawSoftShadow(rect rl.Rectangle, roundness float32, segments int32) {
 			rect.Width+spread,
 			rect.Height+spread,
 		)
+		// raylib roundness is relative to min(w,h): radius = roundness*min/2
+		r := radius + spread/2
+		roundness := 2 * r / min(s.Width, s.Height)
 		rl.DrawRectangleRounded(s, roundness, segments, rl.NewColor(0, 0, 0, alphas[i]))
 	}
 }
