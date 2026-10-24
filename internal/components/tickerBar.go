@@ -18,6 +18,8 @@ type TickerBarLayout struct {
 	BgRect   rl.Rectangle
 	mu       sync.RWMutex
 	segments []emoji.Segment
+	textW    float32 // cached MeasureRun(segments); valid when widthOK
+	widthOK  bool
 	TextX    float32
 	fontSize float32
 	emojiSz  float32
@@ -54,6 +56,7 @@ func (l *TickerBarLayout) GetData(pb *pocketbase.PocketBase) error {
 
 	l.mu.Lock()
 	l.segments = segs
+	l.widthOK = false
 	l.mu.Unlock()
 	return nil
 }
@@ -76,26 +79,30 @@ func (l *TickerBarLayout) Draw(screenSize [2]int32, font *rl.Font, atlas *emoji.
 	// vertical centre of the bar
 	cy := l.BgRect.Y + l.BgRect.Height/2
 
-	l.mu.RLock()
+	// Measure once per data change (not every frame); all reads under the lock.
+	l.mu.Lock()
 	segs := l.segments
-	l.mu.RUnlock()
+	if !l.widthOK {
+		l.textW = emoji.MeasureRun(segs, font, l.fontSize, l.emojiSz)
+		l.widthOK = true
+	}
+	ts := l.textW
+	l.mu.Unlock()
+
+	if ts <= 0 {
+		return
+	}
 
 	sw := float32(screenSize[0])
 
-	drawAt := func(startX float32) {
-		emoji.DrawRun(segs, atlas, font, startX, cy, l.fontSize, rl.White)
-	}
-
-	drawAt(l.TextX)
-	ts := emoji.MeasureRun(l.segments, font, l.fontSize, l.emojiSz)
-	if ts > sw {
-		drawAt(l.TextX - ts)
-	} else {
-		drawAt(l.TextX - sw)
+	// The text scrolls right and loops with period ts; repeat copies to the left
+	// until the screen is covered (also fills the gap when the text is short).
+	for x := l.TextX; x+ts > 0; x -= ts {
+		emoji.DrawRun(segs, atlas, font, x, cy, l.fontSize, rl.White)
 	}
 
 	l.TextX += sw / 30.0 * rl.GetFrameTime()
-	if l.TextX >= sw {
-		l.TextX = 0
+	if l.TextX >= ts {
+		l.TextX -= ts
 	}
 }

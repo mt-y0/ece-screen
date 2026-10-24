@@ -10,7 +10,7 @@ _Last updated: 2026-10-24_
 
 ## `lib/emoji`
 
-- `Load(dir)` — packs `*.png` (Twemoji naming `1f600.png`, `1f1f8-1f1e6.png`) into one 64-px-cell atlas texture. Inert (no-op) atlas if dir missing. Must run after `InitWindow`. Loaded from `resources/fonts/twemoji` (relative to CWD!).
+- `Load(dir)` — packs `*.png` (Twemoji naming `1f600.png`, `1f1f8-1f1e6.png`) into one 64-px-cell atlas texture. Inert (no-op, nil-safe) atlas if dir missing (a warning is logged; failed PNGs are logged and counted). Must run after `InitWindow`. `main.go` loads `resources/fonts/twemoji` relative to the CWD, falling back to the executable's directory.
 - `Split(shapedText) []Segment` — alternating text / emoji segments; folds FE0F, skin tones, ZWJ chains, flag pairs into one key. Base emoji ranges: 1F300–1FAFF and 2600–27BF only.
 - `DrawRun(segs, atlas, font, x, y, fontSize, tint) float32` — **`y` is the vertical centre of the line**. Text drawn with spacing `1`; emoji drawn at `fontSize*0.65` (not 0.85) with `0.25*size` left pad and +2 px after.
 - `MeasureRun(segs, font, fontSize, emojiSize) float32` — adds `emojiSize*0.25` for **every** segment (text too) and text spacing `1`.

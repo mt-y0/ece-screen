@@ -130,7 +130,7 @@ func (l *NoticeBoard) GetData(pb *pocketbase.PocketBase) error {
 		}
 		imgPath := ""
 		if imgFile := r.GetString("image"); imgFile != "" {
-			imgPath = "pb_data/storage/" + col.Id + "/" + r.Id + "/" + imgFile
+			imgPath = storagePath(pb, col.Id, r.Id, imgFile)
 		}
 		data = append(data, NoticeItem{
 			Id:       r.Id,
@@ -182,6 +182,7 @@ func (l *NoticeBoard) CleanUp() {
 		rl.UnloadTexture(l.currentTex)
 		l.hasTexture = false
 	}
+	l.Mask.Unload()
 }
 
 func (l *NoticeBoard) Draw(font *rl.Font, emojiAtlas *emoji.Atlas, zoom float64, blue, lblue rl.Color) {

@@ -1,0 +1,25 @@
+# systemd *user* unit that starts the board inside the graphical session (kiosk autostart).
+#
+# Install:
+#   mkdir -p ~/.config/systemd/user
+#   cp deploy/ece-screen.service ~/.config/systemd/user/
+#   # edit WorkingDirectory/ExecStart if the repo is not at ~/ece-screen
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now ece-screen.service
+#   loginctl enable-linger "$USER"   # optional: start without an interactive login
+#
+# The working directory must contain pb_data/ and resources/ (paths are relative).
+[Unit]
+Description=ECE department display board
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+WorkingDirectory=%h/ece-screen
+EnvironmentFile=-%h/ece-screen/.env
+ExecStart=%h/ece-screen/ECE-screen
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

@@ -28,3 +28,6 @@ Thumbs.db
 
 # Makefile build stamps
 .build/
+
+# keep the template
+!.env.example

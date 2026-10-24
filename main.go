@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"mt-y0/ECE-screen/internal/components"
@@ -18,10 +19,40 @@ import (
 //go:embed resources/fonts/notokufi.ttf
 var arabicFontData []byte
 
+// resourceDir returns rel if it exists relative to the CWD, otherwise relative
+// to the executable's directory (so the binary also works when launched from
+// elsewhere, e.g. by systemd). Falls back to rel unchanged.
+func resourceDir(rel string) string {
+	if _, err := os.Stat(rel); err == nil {
+		return rel
+	}
+	if exe, err := os.Executable(); err == nil {
+		if p := filepath.Join(filepath.Dir(exe), rel); dirExists(p) {
+			return p
+		}
+	}
+	return rel
+}
+
+func dirExists(p string) bool {
+	st, err := os.Stat(p)
+	return err == nil && st.IsDir()
+}
+
 func main() {
 	pb := db.InitPocketBase()
 	video.Player = video.MpvInit()
 	defer video.Player.TerminateDestroy()
+	// raylib logs every loaded file at INFO (~3000 lines for the emoji set);
+	// show warnings and errors only unless RL_LOG=info|debug is set.
+	logLevel := rl.LogWarning
+	switch os.Getenv("RL_LOG") {
+	case "info":
+		logLevel = rl.LogInfo
+	case "debug":
+		logLevel = rl.LogDebug
+	}
+	rl.SetTraceLogLevel(logLevel)
 	rl.SetConfigFlags(rl.FlagWindowTransparent)
 	rl.InitWindow(0, 0, "ECE screen")
 	rl.HideCursor()
@@ -38,7 +69,7 @@ func main() {
 
 	// Emoji atlas — loads from resources/fonts/twemoji/ (72×72 Twemoji PNGs).
 	// Inert if the directory is missing; no nil-checks needed downstream.
-	emojiAtlas := emoji.Load("resources/fonts/twemoji")
+	emojiAtlas := emoji.Load(resourceDir("resources/fonts/twemoji"))
 	defer emojiAtlas.Unload()
 
 	screenSize := [2]int32{
@@ -47,8 +78,10 @@ func main() {
 	}
 	zoom := 1.0
 	if v := os.Getenv("ZOOM"); v != "" {
-		if parsed, err := strconv.ParseFloat(v, 64); err == nil {
+		if parsed, err := strconv.ParseFloat(v, 64); err == nil && parsed > 0 {
 			zoom = parsed
+		} else {
+			log.Printf("ignoring invalid ZOOM=%q (need a number > 0); using 1.0", v)
 		}
 	}
 

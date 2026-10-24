@@ -4,7 +4,7 @@ _Last updated: 2026-10-24_
 
 ## Makefile (preferred)
 
-`make` shows a menu (TUI helpers in `scripts/tui.sh`; honours `NO_COLOR`). `make build` / `make run` first detect a fresh clone (missing `.build/deps.stamp`, or `go.mod`/`go.sum` newer), run a system-dependency check (`make doctor`) and `go mod download`, then build `./ECE-screen`. `make test` = `go vet` + `gofmt -l` check + `go test ./...` (no Go tests exist yet). Also: `setup`, `vet`, `fmt`, `clean`, `distclean`.
+`make` shows a menu (TUI helpers in `scripts/tui.sh`; honours `NO_COLOR`). `make build` / `make run` first detect a fresh clone (missing `.build/deps.stamp`, or `go.mod`/`go.sum` newer), run a system-dependency check (`make doctor`) and `go mod download`, then build `./ECE-screen`. `make test` = `go vet` + `gofmt -l` check + `go test ./...`. Also: `setup`, `vet`, `fmt`, `clean`, `distclean`.
 
 ## Build / run / lint
 
@@ -15,7 +15,7 @@ gofmt -l .       # formatting (clean)
 go run .         # needs a display + libmpv (cannot run headless)
 ```
 
-No automated tests exist. Press **X** to quit.
+Unit tests exist for `lib/fonts` (`Reshape`), `lib/emoji` (`Split`, nil atlas) and `Parse12HourTime`; nothing renders, so `go test ./...` runs headless. Press **X** to quit.
 
 ## System dependencies
 
@@ -26,7 +26,10 @@ No automated tests exist. Press **X** to quit.
 | Var | Default | Notes |
 |---|---|---|
 | `FPS` | 60 | positive int |
-| `ZOOM` | 1.0 | float; **not validated** (0/negative breaks layout) |
+| `ZOOM` | 1.0 | float > 0; invalid values are logged and ignored |
+| `RL_LOG` | (warnings only) | `info` / `debug` restore raylib's verbose logging (default hides ~3000 emoji-load lines) |
+
+`.env.example` lists these. For kiosk autostart see `deploy/ece-screen.service` (systemd user unit; install steps in its header).
 
 ## CLI behaviour
 
@@ -50,4 +53,4 @@ git push "https://x-access-token:${GITHUB_TOKEN}@github.com/<owner>/ece-screen.g
 
 ## Working directory matters
 
-`pb_data/` (images/videos) and `resources/fonts/twemoji` are resolved relative to CWD. The Arabic font is embedded in the binary via `go:embed`; the Twemoji PNGs are not.
+`pb_data/` (images/videos) is resolved relative to CWD (via `pb.DataDir()`); `resources/fonts/twemoji` is tried relative to CWD, then to the executable's directory. The Arabic font is embedded in the binary via `go:embed`; the Twemoji PNGs are not.

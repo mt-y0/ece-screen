@@ -65,7 +65,7 @@ PocketBase starts as a goroutine inside the same process and serves its admin UI
 
 - A connected display (raylib requires a real window)
 - `libmpv` shared library installed
-- Go 1.22+
+- Go 1.26+ (see `go.mod`)
 
 On Arch Linux / Manjaro:
 ```bash

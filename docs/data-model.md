@@ -26,7 +26,7 @@ DB lives in `pb_data/` (git-ignored) next to the working directory. Admin UI: `h
 
 ## File paths
 
-Uploaded files are read straight from disk: `pb_data/storage/<collectionId>/<recordId>/<filename>` (relative to the process CWD). Run the binary from the directory containing `pb_data/`.
+Uploaded files are read straight from disk: `<pb.DataDir()>/storage/<collectionId>/<recordId>/<filename>` (via `storagePath` in `internal/components/paths.go`; a missing file is logged). `DataDir()` defaults to `pb_data/` in the process CWD, so run the binary from the directory containing `pb_data/`.
 
 ## Realtime
 

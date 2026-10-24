@@ -9,7 +9,7 @@ Entry point for Claude Code. **This file is an index; the details live in [`docs
 ECE-screen: fullscreen 60 fps raylib-go display board for a university ECE department — 4-stage lecture table, professors board, main/secondary media (images + mpv video), notice board, scrolling ticker; Arabic-first (custom shaper). Data in embedded PocketBase (`pb_data/`, admin at `:8090/_/`) with live hooks into the render loop. Needs a display + libmpv; cannot run headless.
 
 ```bash
-make test   # vet + gofmt (no Go tests exist); also: make build / make run
+make test   # vet + gofmt + go test; also: make build / make run
 make run                        # auto-fetches deps on fresh clone; needs display + libmpv
 ```
 

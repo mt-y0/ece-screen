@@ -112,7 +112,7 @@ func (l *MainMediaCard) GetData(pb *pocketbase.PocketBase) error {
 		if file == "" {
 			continue
 		}
-		filePath := "pb_data/storage/" + col.Id + "/" + r.Id + "/" + file
+		filePath := storagePath(pb, col.Id, r.Id, file)
 		dur := r.GetInt("duration")
 		if dur <= 0 {
 			dur = 10

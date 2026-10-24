@@ -91,7 +91,7 @@ func (l *ProfessorsBoard) GetData(pb *pocketbase.PocketBase) error {
 	for _, r := range records {
 		imgPath := ""
 		if imgFile := r.GetString("image"); imgFile != "" {
-			imgPath = "pb_data/storage/" + col.Id + "/" + r.Id + "/" + imgFile
+			imgPath = storagePath(pb, col.Id, r.Id, imgFile)
 		}
 		data = append(data, ProfessorItem{
 			Id:      r.Id,

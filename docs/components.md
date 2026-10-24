@@ -9,7 +9,7 @@ Common fields: `BgRect`, `Mask raycss.MaskContainer`, `mu sync.RWMutex`, `dirty 
 | File | Type | Collection | Behaviour |
 |---|---|---|---|
 | `tableArea.go` | `TableLayout` | `Schedules` | 4 stage cards (stage = `4 - i`). Header, section sub-header, per-lecture: start time, subject (shrunk to fit width), hall. Past lectures hidden; "لا يوجد" when empty. Sort by start time. |
-| `tickerBar.go` | `TickerBarLayout` | `TickerBar` | Concatenates all `text` fields with ` ~ ` separators, reshaped + emoji-split. Scrolls rightwards at `screenW/30` px/s, drawing two copies for wrap-around. Blue bar, white text. |
+| `tickerBar.go` | `TickerBarLayout` | `TickerBar` | Concatenates all `text` fields with ` ~ ` separators, reshaped + emoji-split. Scrolls rightwards at `screenW/30` px/s; the text width is measured once per data change (under the lock) and copies are repeated to the left so the loop is seamless (period = text width) and short text leaves no gap. Blue bar, white text. |
 | `professorsBoard.go` | `ProfessorsBoard` | `Professors` (sorted `display_order`) | Cycles every fixed 20 s (`profCycleDuration`). Cropped (cover-fit) photo in its own `imgMask`, name / uppercase role / justified bio. Latin text path (no Reshape of whole card; `FitText` reshapes internally). |
 | `secMediaCard.go` | `SecondaryMediaCard` | `Media` where `main_only = false`, images only | Contain-fit image, per-item `duration` (default 10 s). Starts at index 1 so it is out of phase with main media. |
 | `mainMediaCard.go` | `MainMediaCard` | `Media` (all) | Images (contain-fit) or video. Video: `playVideo()` computes size via `ffprobe`, builds an mpv `lavfi` scale+pad filter to position the video inside `BgRect` on the fullscreen mpv window, sets `IsVideo`. While a video plays the card is white and `main.go` punches a hole for it. Cycle advances when video goes idle. |
@@ -23,7 +23,7 @@ Index is reset to 0 in `GetData` only when it falls out of range.
 
 ## Cleanup
 
-Each component with GPU resources has `CleanUp()` (called with `defer` in `main.go`). `NoticeBoard.CleanUp` unloads the texture but not its `Mask`; `TickerBarLayout` has none (no GPU resources).
+Each component with GPU resources has `CleanUp()` (called with `defer` in `main.go`). `NoticeBoard.CleanUp` unloads the texture and its `Mask`; `TickerBarLayout` has none (no GPU resources).
 
 ## Adding a new component
 

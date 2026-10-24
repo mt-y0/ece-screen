@@ -9,7 +9,7 @@ Entry point for AI coding agents (Codex, Cursor, Claude Code, …). **This file 
 ECE-screen: fullscreen 60 fps raylib-go display board for a university ECE department — 4-stage lecture table, professors board, main/secondary media (images + mpv video), notice board, scrolling ticker; Arabic-first (custom shaper). Data in embedded PocketBase (`pb_data/`, admin at `:8090/_/`) with live hooks into the render loop. Needs a display + libmpv; cannot run headless.
 
 ```bash
-go build ./... && go vet ./...   # no tests exist
+go build ./... && go vet ./...   # or: make test (vet + gofmt + go test)
 go run .                         # needs display + libmpv
 ```
 

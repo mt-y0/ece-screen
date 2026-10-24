@@ -2,6 +2,7 @@ package emoji
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -29,6 +30,7 @@ type Atlas struct {
 func Load(dir string) *Atlas {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
+		log.Printf("emoji: cannot read %q (%v) — emoji will not render", dir, err)
 		return &Atlas{rects: make(map[string]rl.Rectangle)}
 	}
 
@@ -54,10 +56,13 @@ func Load(dir string) *Atlas {
 	rects := make(map[string]rl.Rectangle, len(keys))
 
 	src := rl.Rectangle{X: 0, Y: 0, Width: cellSize, Height: cellSize}
+	failed := 0
 	for idx, key := range keys {
 		img := rl.LoadImage(filepath.Join(dir, key+".png"))
 		if img.Width == 0 {
 			rl.UnloadImage(img)
+			failed++
+			log.Printf("emoji: failed to load %s.png", key)
 			continue
 		}
 		rl.ImageResize(img, cellSize, cellSize)
@@ -71,6 +76,10 @@ func Load(dir string) *Atlas {
 		rl.ImageDraw(atlasImg, img, src, dst, rl.White)
 		rl.UnloadImage(img)
 		rects[key] = dst
+	}
+
+	if failed > 0 {
+		log.Printf("emoji: %d of %d images failed to load", failed, len(keys))
 	}
 
 	tex := rl.LoadTextureFromImage(atlasImg)
@@ -95,7 +104,7 @@ func (a *Atlas) Draw(key string, x, y, size float32, tint rl.Color) bool {
 
 // Unload frees the GPU texture. Call before rl.CloseWindow.
 func (a *Atlas) Unload() {
-	if a.loaded {
+	if a != nil && a.loaded {
 		rl.UnloadTexture(a.texture)
 		a.loaded = false
 	}
@@ -103,6 +112,9 @@ func (a *Atlas) Unload() {
 
 // find resolves a key, falling back to a FE0F-stripped variant.
 func (a *Atlas) find(key string) (rl.Rectangle, bool) {
+	if a == nil {
+		return rl.Rectangle{}, false
+	}
 	if r, ok := a.rects[key]; ok {
 		return r, true
 	}

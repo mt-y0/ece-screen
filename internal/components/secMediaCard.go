@@ -86,7 +86,7 @@ func (l *SecondaryMediaCard) GetData(pb *pocketbase.PocketBase) error {
 		if imgFile == "" || isVideo(imgFile) {
 			continue
 		}
-		imgPath := "pb_data/storage/" + col.Id + "/" + r.Id + "/" + imgFile
+		imgPath := storagePath(pb, col.Id, r.Id, imgFile)
 		dur := r.GetInt("duration")
 		if dur <= 0 {
 			dur = 10

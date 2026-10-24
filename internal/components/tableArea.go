@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"sort"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -74,13 +75,21 @@ type TableLayout struct {
 	data       []classStruct
 	dirty      atomic.Bool
 	lastMinute int
+
+	pb        *pocketbase.PocketBase // set by Watch; used for the midnight reload
+	loadedDay atomic.Int32           // weekday the current data was loaded for
+	reloading atomic.Bool
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
-func Parse12HourTime(s string) time.Time {
-	t, _ := time.Parse("03:04 PM", s)
-	return t
+// Parse12HourTime parses "03:04 PM" as well as "3:04 PM" (case-insensitive).
+func Parse12HourTime(s string) (time.Time, error) {
+	s = strings.ToUpper(strings.TrimSpace(s))
+	if t, err := time.Parse("03:04 PM", s); err == nil {
+		return t, nil
+	}
+	return time.Parse("3:04 PM", s)
 }
 
 // ── init ───────────────────────────────────────────────────────────────────
@@ -104,15 +113,20 @@ func GetTableLayout(screenSize [2]int32, zoom float64) *TableLayout {
 
 	l.dirty.Store(true)
 	l.lastMinute = -1
+	l.loadedDay.Store(-1)
 	return l
 }
 
 // ── data ───────────────────────────────────────────────────────────────────
 
 func (l *TableLayout) GetData(pb *pocketbase.PocketBase) error {
+	// Record the day first so a failing query is retried tomorrow / on the
+	// next record change, not on every frame.
+	weekday := int(time.Now().Weekday())
+	l.loadedDay.Store(int32(weekday))
 	records, err := pb.FindRecordsByFilter(
 		"Schedules",
-		fmt.Sprintf("day='%s'", arabicDays[int(time.Now().Weekday())]),
+		fmt.Sprintf("day='%s'", arabicDays[weekday]),
 		"", 300, 0,
 	)
 	if err != nil {
@@ -121,6 +135,13 @@ func (l *TableLayout) GetData(pb *pocketbase.PocketBase) error {
 
 	data := make([]classStruct, 0, len(records))
 	for _, r := range records {
+		start, errS := Parse12HourTime(r.GetString("start_time"))
+		end, errE := Parse12HourTime(r.GetString("end_time"))
+		if errS != nil || errE != nil {
+			log.Printf("schedule %s: bad time (start=%q end=%q), row skipped",
+				r.Id, r.GetString("start_time"), r.GetString("end_time"))
+			continue
+		}
 		data = append(data, classStruct{
 			Id:            r.Id,
 			Stage:         r.GetInt("stage"),
@@ -128,8 +149,8 @@ func (l *TableLayout) GetData(pb *pocketbase.PocketBase) error {
 			ShapedSubject: lib.Reshape(r.GetString("subject")),
 			ShapedHall:    lib.Reshape("قاعة " + r.GetString("hall") + " "),
 			StartTimeStr:  r.GetString("start_time"),
-			StartTime:     Parse12HourTime(r.GetString("start_time")),
-			EndTime:       Parse12HourTime(r.GetString("end_time")),
+			StartTime:     start,
+			EndTime:       end,
 		})
 	}
 
@@ -146,6 +167,7 @@ func (l *TableLayout) GetData(pb *pocketbase.PocketBase) error {
 }
 
 func (l *TableLayout) Watch(pb *pocketbase.PocketBase) {
+	l.pb = pb
 	reload := func(e *core.RecordEvent) error {
 		if err := l.GetData(pb); err != nil {
 			log.Printf("table reload: %v", err)
@@ -166,6 +188,17 @@ func (l *TableLayout) Draw(font *rl.Font, zoom float64, blue, lightBlue rl.Color
 
 	now := time.Now()
 	nowH, nowM, _ := now.Clock()
+
+	// The day filter is applied at load time, so reload when the weekday rolls over.
+	if l.pb != nil && int32(now.Weekday()) != l.loadedDay.Load() &&
+		l.reloading.CompareAndSwap(false, true) {
+		go func() {
+			defer l.reloading.Store(false)
+			if err := l.GetData(l.pb); err != nil {
+				log.Printf("table day reload: %v", err)
+			}
+		}()
+	}
 
 	// Dirty on minute boundary so expired lectures are removed promptly.
 	nowMin := now.Hour()*60 + now.Minute()
@@ -256,6 +289,9 @@ func (l *TableLayout) Draw(font *rl.Font, zoom float64, blue, lightBlue rl.Color
 							if fs < 10 {
 								fs = 10
 							}
+						}
+						if fs != subFS {
+							subSz = rl.MeasureTextEx(*font, lec.ShapedSubject, fs, 0)
 						}
 						rl.DrawTextEx(*font, lec.ShapedSubject,
 							rl.Vector2{X: x0 + secW - cardPad.Right - subSz.X, Y: y},
