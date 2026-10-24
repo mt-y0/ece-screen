@@ -1,64 +1,42 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+_Last updated: 2026-10-24_
 
-## Commands
+Entry point for Claude Code. **This file is an index; the details live in [`docs/`](docs/README.md).** (`AGENTS.md` is the same index for other agents.)
+
+## Project in one paragraph
+
+ECE-screen: fullscreen 60 fps raylib-go display board for a university ECE department — 4-stage lecture table, professors board, main/secondary media (images + mpv video), notice board, scrolling ticker; Arabic-first (custom shaper). Data in embedded PocketBase (`pb_data/`, admin at `:8090/_/`) with live hooks into the render loop. Needs a display + libmpv; cannot run headless.
 
 ```bash
-go build ./...          # build
-go run .                # run (requires a display and MPV installed)
-go vet ./...            # lint
+go build ./... && go vet ./...   # no tests exist
+go run .                         # needs display + libmpv
 ```
 
-There are no tests. The application requires a connected display and `libmpv` — it cannot run headlessly.
+## Where to look
 
-PocketBase admin UI is served at `http://localhost:8090/_/` while the app is running.
-
-## Architecture
-
-**ECE-screen** is a university department display board: a fullscreen 60 fps raylib window that shows today's lecture schedule, a scrolling ticker, and a notice board. All data lives in an embedded PocketBase SQLite database (`pb_data/`); PocketBase starts as a goroutine inside the process.
-
-### Data flow
-
-```
-PocketBase (goroutine, :8090)
-    ↓ initial load + live hooks
-components (sync.RWMutex)
-    ↓ each frame
-Raylib render loop (main goroutine)
-```
-
-Each component owns a `sync.RWMutex`: PocketBase event hooks (`OnRecordAfterCreateSuccess` etc.) write under a write-lock; `Draw()` reads under a read-lock.
-
-### Key packages
-
-| Package | Purpose |
+| Need | Doc |
 |---|---|
-| `lib/fonts` | Custom Arabic shaper — `Reshape()` converts raw Unicode Arabic to FE-range presentation forms, applies lam-alef ligatures, and reverses bidi runs so raylib's LTR renderer displays it correctly. `LoadFont()` bakes NotoKufi TTF with all Arabic codepoint ranges. |
-| `lib/emoji` | Twemoji PNG atlas loader. `Split()` tokenises already-shaped text into `[]Segment` (plain text runs or single emoji). `DrawRun()` renders a segment slice. `MeasureRun()` measures without drawing. |
-| `lib/raycss` | CSS-like primitives: palette colours, `DrawHLine`/`DrawVLine`, `DrawSoftShadow`, `MaskContainer` (SDF shader rounded-corner clipping), and `FitText` (Arabic-aware word-wrap returning `[]Line`). |
-| `lib/video` | Thin `go-mpv` wrapper; MPV instance is created at startup but video playback is currently unused — ignore it for now. |
-| `internal/db` | Starts the embedded PocketBase server. If no CLI args are given, defaults to `serve --http=0.0.0.0:8090`. |
-| `internal/components` | Three UI components: `TableLayout` (4 stage cards), `TickerBarLayout` (scrolling footer), `NoticeBoard` (Arabic body text). |
+| Overview, index, doc rules | [docs/README.md](docs/README.md) |
+| Process model, data flow, screen geometry | [docs/architecture.md](docs/architecture.md) |
+| Each UI component | [docs/components.md](docs/components.md) |
+| `lib/fonts`, `lib/emoji`, `lib/raycss`, `lib/video` | [docs/libraries.md](docs/libraries.md) |
+| PocketBase collections/fields | [docs/data-model.md](docs/data-model.md) |
+| Build/run/env/setup/secrets | [docs/operations.md](docs/operations.md) |
+| Invariants, do-not-touch, style | [docs/conventions.md](docs/conventions.md) |
+| Known bugs & proposed fixes | [docs/suggestions.md](docs/suggestions.md) |
+| History | [docs/CHANGELOG.md](docs/CHANGELOG.md) |
 
-### Critical invariants
+## Must-know invariants (full list in docs/conventions.md)
 
-1. **Arabic text pipeline**: raw Arabic → `lib.Reshape()` → `rl.DrawTextEx`. Never pass raw Arabic directly to raylib — glyphs will not connect.
+- Arabic: raw text → `lib.Reshape()` → `rl.DrawTextEx`; **but** never pre-`Reshape` text given to `raycss.FitText`.
+- `MaskContainer` callbacks draw in local coords (0,0); `TextStyle.Spacing` must match `DrawTextEx` spacing.
+- GL calls on the main goroutine only; hooks mutate state under the component `mu`.
+- Do not modify `lib/video`, `video.MpvInit()`, or the commented blend-mode block in `main.go`.
 
-2. **`FitText` reshapes internally**: do _not_ pre-`Reshape` text passed to `raycss.FitText`; it calls `lib.Reshape` on each word internally so cross-word contextual forms are correct.
+## Mandatory documentation rules
 
-3. **`MaskContainer` local coordinates**: the `drawChildren` callback passed to `mask.Draw()` must use `(0, 0)` as the card origin — the SDF shader clips in texture space, not screen space.
-
-4. **Spacing consistency**: `TextStyle.Spacing` in `FitText` must equal the `spacing` argument later passed to `rl.DrawTextEx`. Arabic text uses `0`; mismatching causes line widths to be wrong and text to overflow.
-
-5. **Emoji sizing**: `emoji.DrawRun` internally sizes emoji at `fontSize * 0.85`. `emoji.MeasureRun` takes an explicit `emojiSize` — pass `fontSize * 0.85` to match.
-
-### Ignored / dead code
-
-- `lib/video` and the `m := video.MpvInit()` call in `main.go` are not in active use — do not modify or remove them, just leave them alone.
-- The commented-out blend mode block in `main.go` (`BeginBlendMode` / `SetBlendFactorsSeparate` / `EndBlendMode`) is intentionally left as a reference — do not uncomment or delete it.
-
-### PocketBase collections (inferred from code)
-
-- `Schedules` — fields: `day` (Arabic weekday string), `stage` (1–4), `section` (`"A"`, `"B"`, `"مسائي"`), `subject`, `hall`, `start_time`, `end_time` (12-hour format `"03:04 PM"`)
-- `TickerBar` — field: `text`
+1. **Any code change → update the affected `docs/*.md` in the same change.**
+2. **Every update must carry a date:** bump `_Last updated: YYYY-MM-DD_` in each touched doc (and in this file if edited) and add a dated entry to `docs/CHANGELOG.md`.
+3. Mark implemented items in `docs/suggestions.md` as `fixed (date)`; don't delete them.
+4. Never commit secrets. `.env` is git-ignored and holds `GITHUB_TOKEN`; don't print it or put it in docs/commits.
