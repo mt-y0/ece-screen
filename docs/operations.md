@@ -30,9 +30,9 @@ No automated tests exist. Press **X** to quit.
 
 ## First-time setup
 
-1. `go run .` once → PocketBase creates `pb_data/` and prints a one-time superuser install link.
-2. Open `http://localhost:8090/_/`, create the superuser and the collections in [data-model.md](data-model.md).
-3. Add data; the screen updates live.
+1. `go run .` with no `pb_data/` → PocketBase creates it, `EnsureSchema` creates all collections with example data ([data-model.md](data-model.md)), and PocketBase prints (and tries to open) a one-time registration URL `http://localhost:8090/_/#/pbinstall/<token>` (valid 30 min). Open it to create the first superuser. Alternative: `go run . superuser upsert EMAIL PASS`.
+2. The screen already works with the example data; after registering, edit/replace it at `http://localhost:8090/_/` and it updates live.
+3. The URL is only printed while no superuser exists; restart the app to get a fresh one.
 
 ## Secrets / git
 

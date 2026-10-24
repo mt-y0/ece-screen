@@ -8,7 +8,7 @@ _Last updated: 2026-10-24_
 
 ```
 main goroutine (OS thread, required by raylib/OpenGL)
- ├─ db.InitPocketBase()  → spawns goroutine running app.Start() (serve 0.0.0.0:8090)
+ ├─ db.InitPocketBase()  → goroutine runs app.Start() (serve 0.0.0.0:8090); blocks until OnServe has run EnsureSchema (creates missing collections + examples), 30 s timeout
  ├─ video.MpvInit()      → libmpv instance (own fullscreen window behind raylib's transparent one)
  ├─ rl.InitWindow(0,0)   → transparent, monitor-sized window
  ├─ build components, GetData(pb) once, Watch(pb) hooks

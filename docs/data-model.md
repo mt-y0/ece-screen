@@ -2,7 +2,7 @@
 
 _Last updated: 2026-10-24_
 
-DB lives in `pb_data/` (git-ignored) next to the working directory. Admin UI: `http://localhost:8090/_/`. Collections are created by hand in the admin UI — **there are no migrations in the repo**. Fields below are inferred from code.
+DB lives in `pb_data/` (git-ignored) next to the working directory. Admin UI: `http://localhost:8090/_/`. Collections are **created automatically** on startup by `internal/db/schema.go` (`EnsureSchema`): any missing collection is created with its fields and filled with example records (Schedules for today, 2 ticker messages, 2 professors, 2 notices, 2 generated placeholder PNGs in Media). Existing collections/data are never modified. Rules are left superuser-only (the app reads through the in-process API). When you change a field in code, update `schema.go` too.
 
 | Collection | Field | Type | Notes |
 |---|---|---|---|

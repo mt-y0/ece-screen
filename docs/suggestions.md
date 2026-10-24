@@ -7,7 +7,7 @@ Found by code reading + `go vet` on 2026-10-24. Nothing here is fixed yet. Statu
 | ID | Sev | Status | Where | Problem → Proposed fix |
 |---|---|---|---|---|
 | S-01 | H | open | `internal/db/client.go` | Binds `0.0.0.0:8090`: admin UI + API reachable from the whole LAN on a public display. → default to `127.0.0.1:8090` (env `PB_ADDR` to override); keep collection API rules locked. |
-| S-02 | H | open | `internal/db/client.go`, `main.go` | `time.Sleep(50ms)` after `go app.Start()` is a race: `GetData` may run before PocketBase is bootstrapped, so the first load fails (only logged) and screens stay empty until a record changes. → bootstrap synchronously (`app.Bootstrap()`) or wait on `OnServe`/a ready channel before calling `GetData`. |
+| S-02 | H | fixed (2026-10-24) | `internal/db/client.go`, `main.go` | `time.Sleep(50ms)` after `go app.Start()` is a race: `GetData` may run before PocketBase is bootstrapped, so the first load fails (only logged) and screens stay empty until a record changes. → fixed: `InitPocketBase` now waits on a ready channel closed from `OnServe` after `EnsureSchema`. |
 | S-03 | H | open | `tableArea.go` `GetData` | Day filter is evaluated once at load: after midnight the board keeps showing yesterday's lectures until a Schedules record changes. → reload when the weekday changes (check in `Draw` alongside `lastMinute`). |
 | S-04 | M | open | `tableArea.go` Draw (subject) | When the subject font is shrunk to fit, X is still computed from the *unscaled* width `subSz.X`, so shrunk text is left-shifted/overflows. → re-measure at `fs` and use that width. |
 | S-05 | M | open | `tickerBar.go` Draw | (a) Wrap resets at `TextX >= screenW`, but the loop period is the text width → visible jump unless `ts == screenW`; (b) text shorter than the screen leaves a gap; (c) `MeasureRun` called every frame and reads `l.segments` **without the lock** (data race with hooks). → cache measured width when segments change (under lock); wrap at `ts` (pad/repeat short text). |
@@ -20,7 +20,7 @@ Found by code reading + `go vet` on 2026-10-24. Nothing here is fixed yet. Statu
 | S-12 | L | open | `raycss.NewMaskContainer` | Every container compiles its own identical shader (≥8 compiles). Shader is `#version 330` (fails on GLES/Raspberry Pi). → share one shader; provide `#version 100/300 es` fallback if targeting ARM boards. |
 | S-13 | L | open | `lib/fonts/arabic.go` | No Persian/Kurdish letters or tatweel; alef maqsura Initial/Medial reuse the *final* glyph FEF0. → extend `Registry` if the department uses those letters. `Reshape` is pure → ideal for unit tests. |
 | S-14 | L | open | `noticeBoard.go` | File not `gofmt`-clean; `CleanUp` doesn't unload `Mask`. `db/client.go` uses `log.Fatalf` from a goroutine. |
-| S-15 | L | open | repo | No tests, CI, `.env.example`, Dockerfile/systemd unit (kiosk autostart), or PocketBase schema export (`pb_migrations`) — a fresh machine cannot recreate the collections from the repo. → add `Reshape`/`FitText`/time-parse tests, commit PB migrations, add a systemd unit. README says "Go 1.22+" but go.mod requires 1.26.2. |
+| S-15 | L | open | repo | No tests, CI, `.env.example`, Dockerfile/systemd unit (kiosk autostart). (Schema bootstrap now exists in `internal/db/schema.go`, 2026-10-24.) → add `Reshape`/`FitText`/time-parse tests, commit PB migrations, add a systemd unit. README says "Go 1.22+" but go.mod requires 1.26.2. |
 
 ## Suggested order
 
