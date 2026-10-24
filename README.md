@@ -67,10 +67,7 @@ PocketBase starts as a goroutine inside the same process and serves its admin UI
 - `libmpv` shared library installed
 - Go 1.26+ (see `go.mod`)
 
-On Arch Linux / Manjaro:
-```bash
-sudo pacman -S mpv
-```
+On Arch Linux / Manjaro nothing needs to be installed by hand: `make build` (or `make run` / `make labwc`) installs Go, a C compiler, mpv, ffmpeg, the X11/GL libraries, labwc and xwayland via `sudo pacman` when missing, then downloads the Go modules.
 
 On Ubuntu/Debian:
 ```bash
@@ -86,11 +83,14 @@ sudo apt install libmpv-dev
 git clone https://github.com/mt-y0/ece-screen.git
 cd ece-screen
 
-# Build
-go build ./...
+# Build (on Arch this also installs missing system packages)
+make build
 
 # Run (requires display + libmpv)
-go run .
+make run
+
+# Or run it as the only app of a labwc session (quit with X)
+make labwc
 ```
 
 The PocketBase admin UI is available at **http://localhost:8090/_/** while the app is running. Use it to seed and manage all data.

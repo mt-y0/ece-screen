@@ -4,7 +4,11 @@ _Last updated: 2026-10-24_
 
 ## Makefile (preferred)
 
-`make` shows a menu (TUI helpers in `scripts/tui.sh`; honours `NO_COLOR`). `make build` / `make run` first detect a fresh clone (missing `.build/deps.stamp`, or `go.mod`/`go.sum` newer), run a system-dependency check (`make doctor`) and `go mod download`, then build `./ECE-screen`. `make test` = `go vet` + `gofmt -l` check + `go test ./...`. Also: `setup`, `vet`, `fmt`, `clean`, `distclean`.
+`make` shows a menu (TUI helpers in `scripts/tui.sh`; honours `NO_COLOR`). `make build` / `make run` first detect a fresh clone (missing `.build/deps.stamp`, or `go.mod`/`go.sum` newer), run a system-dependency check (`make doctor`) and `go mod download`, then build `./ECE-screen`. `make test` = `go vet` + `gofmt -l` check + `go test ./...`. Also: `setup`, `deps`, `labwc`, `vet`, `fmt`, `clean`, `distclean`.
+
+**Fresh-clone bootstrap (`make build` / `make run` / `make labwc`):** the stamp rule runs `scripts/tui.sh deps` then `doctor` then `go mod download`. On **Arch (pacman)** `deps` installs whatever is missing with `sudo pacman -S --needed --noconfirm`: `go gcc pkgconf mpv ffmpeg libx11 libxrandr libxinerama libxcursor libxi libglvnd labwc xorg-xwayland` (sudo runs on the real terminal so it can ask for a password; `DEPS_DRY_RUN=1` only prints the command). On other distros it lists the missing packages and `doctor` fails on the required ones. The Go modules (raylib-go, go-mpv, PocketBase) come from `go mod download`. Editing `scripts/tui.sh` re-triggers the bootstrap.
+
+**`make labwc`:** builds if needed, then runs `labwc -S ./ECE-screen` — the board is labwc's session command, so quitting the board (press **X**) also ends labwc. Needs `labwc` + `xorg-xwayland` (installed by `deps`) because the raylib window is an X11 client.
 
 ## Build / run / lint
 
@@ -19,7 +23,7 @@ Unit tests exist for `lib/fonts` (`Reshape`), `lib/emoji` (`Split`, nil atlas) a
 
 ## System dependencies
 
-`libmpv` (Arch: `mpv`; Debian/Ubuntu: `libmpv-dev`), `ffprobe` (from ffmpeg; used for video sizing), OpenGL 3.3+ (shader is `#version 330`), a real display.
+`libmpv` (Arch: `mpv`; Debian/Ubuntu: `libmpv-dev`), `ffprobe` (from ffmpeg; used for video sizing), a C compiler + X11/GL dev libs (raylib-go builds raylib with cgo), OpenGL 3.3+ (shader is `#version 330`), a real display. Optional: `labwc` + `xorg-xwayland` for `make labwc`. On Arch `make build` installs all of these automatically.
 
 ## Environment variables (read in `main.go`)
 

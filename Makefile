@@ -6,7 +6,7 @@ SRC     := $(shell find . -name '*.go' -not -path './pb_data/*') go.mod go.sum
 export GOFLAGS ?= -buildvcs=false
 
 .DEFAULT_GOAL := help
-.PHONY: help setup doctor build run test vet fmt clean distclean
+.PHONY: help setup deps doctor build run labwc test vet fmt clean distclean
 
 help: ## show this menu
 	@$(TUI) banner
@@ -17,10 +17,15 @@ doctor: ## check system dependencies (go, libmpv, ffprobe, ...)
 	@$(TUI) say "checking the neighbourhood..."
 	@$(TUI) doctor
 
-# Fresh clone? (no stamp, or go.mod/go.sum changed) -> fetch Go modules first.
-$(STAMP): go.mod go.sum
+deps: ## install missing system packages (Arch: go gcc mpv ffmpeg X11/GL libs labwc xwayland)
+	@$(TUI) deps
+
+# Fresh clone? (no stamp, or go.mod/go.sum/tui.sh changed) -> install system packages
+# (Arch/pacman, via sudo), verify them, then fetch Go modules (raylib-go, go-mpv, PocketBase).
+$(STAMP): go.mod go.sum scripts/tui.sh
 	@$(TUI) banner
-	@$(TUI) say "fresh download detected — fetching dependencies"
+	@$(TUI) say "fresh download detected — checking dependencies"
+	@$(TUI) deps
 	@$(TUI) doctor
 	@$(TUI) step "📦" "downloading Go modules" -- go mod download
 	@mkdir -p .build && touch $@
@@ -39,6 +44,11 @@ run: $(BIN) ## build if needed, then launch the board (needs display + libmpv)
 
 vet: $(STAMP) ## go vet
 	@$(TUI) step "🔍" "go vet" -- go vet ./...
+
+labwc: $(BIN) ## build if needed, then run the board inside labwc (labwc -S)
+	@command -v labwc >/dev/null 2>&1 || { $(TUI) fail "labwc not installed — run: make deps"; exit 1; }
+	@$(TUI) say "starting labwc with the board (quit with X; labwc exits with it) 🚀"
+	@exec labwc -S "$(CURDIR)/$(BIN)"
 
 test: $(STAMP) ## vet + gofmt check + go test
 	@$(TUI) step "🔍" "go vet" -- go vet ./...

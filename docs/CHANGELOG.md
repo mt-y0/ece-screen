@@ -4,6 +4,11 @@ _Last updated: 2026-10-24_
 
 Newest first. Every code or doc change gets a dated entry (`YYYY-MM-DD`).
 
+## 2026-10-24 (sixth update)
+- `scripts/tui.sh`: new `deps` command — on Arch installs missing `go gcc pkgconf mpv ffmpeg libx11 libxrandr libxinerama libxcursor libxi libglvnd labwc xorg-xwayland` with `sudo pacman -S --needed`; elsewhere lists them. `doctor` now also checks the C compiler, X11/GL dev libs and labwc.
+- `Makefile`: bootstrap (stamp) runs `deps` → `doctor` → `go mod download` and re-runs when `scripts/tui.sh` changes; new targets `make deps` and `make labwc` (`labwc -S ./ECE-screen`).
+- Docs updated: operations, README.
+
 ## 2026-10-24 (fifth update)
 - `suggestions.md` only (no code): recorded analysis notes for S-06/07/08/13/17, closed S-11 (always 16:9) and S-12 (negligible gain) as wontfix, added S-20 (downscale images on load) and S-21 (smaller emoji set), parked the rest until real-display benchmarking.
 

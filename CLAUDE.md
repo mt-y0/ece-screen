@@ -10,7 +10,8 @@ ECE-screen: fullscreen 60 fps raylib-go display board for a university ECE depar
 
 ```bash
 make test   # vet + gofmt + go test; also: make build / make run
-make run                        # auto-fetches deps on fresh clone; needs display + libmpv
+make run                        # fresh clone: installs missing Arch packages + Go modules; needs display + libmpv
+make labwc                      # same, but runs the board inside labwc -S
 ```
 
 ## Where to look
